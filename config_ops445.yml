@@ -1,0 +1,44 @@
+---
+- name: Configure OPS445 VM
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Update Apache
+      yum:
+        name: httpd
+        state: latest
+
+    - name: Install EPEL repository
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Remove tree package
+      yum:
+        name: tree
+        state: absent
+
+    - name: Set hostname
+      hostname:
+        name: miqbal37
+
+    - name: Create new user with sudo access
+      user:
+        name: miqbal37
+        groups: wheel
+        state: present
+
+    - name: Configure SSH for new user
+      copy:
+        dest: "/home/miqbal37/.ssh/"
+        content: "{{ lookup('file', '/home/miqbal37/.ssh/id_rsa.pub') }}"
+        owner: miqbal37
+        group: miqbal37
+        mode: '0600'
+
+    - name: Create directory structure for labs
+      file:
+        path: "/home/miqbal37/lab{{ item }}"
+        state: directory
+      loop: "{{ range(1, 8) | list }}"
